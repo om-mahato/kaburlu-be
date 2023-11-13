@@ -6,5 +6,6 @@ import { TenantsService } from './tenants.service';
 @Module({
   providers: [TenantsService, ...drizzleProvider],
   controllers: [TenantsController],
+  exports: [TenantsService],
 })
 export class TenantsModule {}

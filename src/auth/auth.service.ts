@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as schema from 'src/drizzle/schema';
+import { TenantsService } from 'src/tenants/tenants.service';
 import { User, UsersService } from 'src/users/users.service';
 
 export type JwtPayload = {
@@ -9,10 +10,18 @@ export type JwtPayload = {
   tenantId: string;
 };
 
+type AdminSignup = Omit<
+  typeof schema.users.$inferInsert & {
+    tenantInfo: typeof schema.tenants.$inferInsert;
+  },
+  'tenantId'
+>;
+
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private tenantsService: TenantsService,
     private jwtService: JwtService,
   ) {}
 
@@ -38,5 +47,14 @@ export class AuthService {
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
+  }
+
+  async signUpAdmin({ tenantInfo, ...input }: AdminSignup) {
+    const tenant = await this.tenantsService.create(tenantInfo);
+    return this.signUp({
+      ...input,
+      tenantId: tenant.id,
+      role: 'admin',
+    });
   }
 }

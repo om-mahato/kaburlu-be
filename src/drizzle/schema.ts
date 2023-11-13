@@ -12,7 +12,9 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { defaultColumns, defaultTenantColumns } from './drizzle.utils';
 
-type Address = {
+type Require<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
+export type Address = {
   addressLine1: string;
   addressLine2?: string;
   city: string;
@@ -20,20 +22,20 @@ type Address = {
   pincode: string;
 };
 
-type Location = {
+export type Location = {
   lat: number;
   lng: number;
 } & Partial<Address>;
 
-type Pic = {
+export type Pic = {
   url: string;
 };
 
-type Vid = {
+export type Vid = {
   url: string;
 };
 
-type SeoInfo = {
+export type SeoInfo = {
   title: string;
   description: string;
   keywords: string[];
@@ -42,24 +44,19 @@ type SeoInfo = {
 const domainSchema = z.string().url();
 type Domain = z.infer<typeof domainSchema>;
 
-const tenantFields = {
-  domain: varchar('domain').$type<Domain>().notNull(),
-  language: varchar('language').notNull(),
-  rniNumber: varchar('rni_number'),
-  publisherName: varchar('publisher_name'),
-  publisherContactNumber: varchar('publisher_contact_number'),
-  chiefEditorName: varchar('chief_editor_name'),
-  contactNumber: varchar('contact_number'),
-  circulationState: varchar('circulation_state'),
-  address: jsonb('address').$type<Address>(),
-};
-
 export const tenants = pgTable(
   'tenants',
   {
     ...defaultColumns,
-    name: varchar('name').notNull(),
-    ...tenantFields,
+    domain: varchar('domain').$type<Domain>().notNull(),
+    language: varchar('language').notNull(),
+    rniNumber: varchar('rni_number'),
+    publisherName: varchar('publisher_name'),
+    publisherContactNumber: varchar('publisher_contact_number'),
+    chiefEditorName: varchar('chief_editor_name'),
+    contactNumber: varchar('contact_number'),
+    circulationState: varchar('circulation_state'),
+    address: jsonb('address').$type<Address>().notNull(),
   },
   (tenants) => ({
     primary: primaryKey({
@@ -75,26 +72,46 @@ export const tenantsRelations = relations(tenants, ({ many }) => ({
 export const insertTenantSchema = createInsertSchema(tenants);
 export const selectTenantSchema = createSelectSchema(tenants);
 
-const userRole = pgEnum('user_role', ['admin', 'editor', 'reporter', 'user']);
+const userRole = pgEnum('user_role', [
+  'super_admin',
+  'admin',
+  'editor',
+  'reporter',
+  'user',
+]);
 
 type ExtraUserInfo = {
   fatherName: string;
 };
 
 type ReporterRankInfo = {
-  beureauIncharge: string;
-  districtIncharge: string;
-  mandalIncharge: string;
-  divisionIncharge: string;
+  beureauInCharge?: string;
+  staffReporter?: string;
+  rcInCharge?: string;
 };
 
 type InfoByRole =
   | {
-      role: 'reporter';
-      rank: ReporterRankInfo;
+      level: 'beaureau';
+      rank?: never;
     }
   | {
-      role: 'other';
+      level: 'staff';
+      rank: Require<ReporterRankInfo, 'beureauInCharge'>;
+    }
+  | {
+      level: 'rc';
+      rank: Require<ReporterRankInfo, 'beureauInCharge' | 'staffReporter'>;
+    }
+  | {
+      level: 'mandal';
+      rank: Require<
+        ReporterRankInfo,
+        'beureauInCharge' | 'staffReporter' | 'rcInCharge'
+      >;
+    }
+  | {
+      level?: never;
       rank?: never;
     };
 
