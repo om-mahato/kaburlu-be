@@ -17,6 +17,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [DbConfig],
+      envFilePath: `.env`,
     }),
     DrizzleModule,
     AuthModule,

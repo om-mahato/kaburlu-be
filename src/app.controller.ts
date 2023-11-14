@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-// import { dbMigrate } from './drizzle/migrate';
+import { dbMigrate } from './drizzle/migrate';
 
 @Controller()
 export class AppController {
@@ -8,7 +8,7 @@ export class AppController {
 
   @Get()
   async getHello(): Promise<string> {
-    // await dbMigrate('./src/drizzle/migrations');
+    await dbMigrate();
     return this.appService.getHello();
   }
 }
