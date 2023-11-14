@@ -21,8 +21,8 @@ export class TenantsService {
     });
   }
 
-  async create(input: TenantInput): Promise<Tenant[] | undefined> {
-    return this.db.insert(schema.tenants).values(input).returning();
+  async create(input: TenantInput): Promise<Tenant | undefined> {
+    return this.db.insert(schema.tenants).values(input).returning()[0];
   }
 
   async getUsers(tenantId: Tenant['id']): Promise<User[] | undefined> {

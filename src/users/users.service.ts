@@ -16,10 +16,31 @@ export class UsersService {
   async create(
     input: typeof schema.users.$inferInsert,
   ): Promise<User | undefined> {
-    return this.db.insert(schema.users).values(input).returning()[0];
+    const users = await this.db.insert(schema.users).values(input).returning();
+    return users[0];
   }
 
-  async findByEmail(email: User['email']): Promise<User | undefined> {
+  async findById(id: User['id']): Promise<Omit<User, 'password'> | undefined> {
+    return this.db.query.users.findFirst({
+      columns: {
+        password: false,
+      },
+      where: (users, { eq }) => eq(users.id, id),
+    });
+  }
+
+  async findByEmail(
+    email: User['email'],
+  ): Promise<Omit<User, 'password'> | undefined> {
+    return this.db.query.users.findFirst({
+      columns: {
+        password: false,
+      },
+      where: (users, { eq }) => eq(users.email, email),
+    });
+  }
+
+  async authByEmail(email: User['email']): Promise<User | undefined> {
     return this.db.query.users.findFirst({
       where: (users, { eq }) => eq(users.email, email),
     });

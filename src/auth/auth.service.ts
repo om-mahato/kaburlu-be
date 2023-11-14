@@ -1,6 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as argon2 from 'argon2';
 import * as schema from 'src/drizzle/schema';
+import { TenantsService } from 'src/tenants/tenants.service';
 import { User, UsersService } from 'src/users/users.service';
 
 export type JwtPayload = {
@@ -9,14 +11,23 @@ export type JwtPayload = {
   tenantId: string;
 };
 
+type AdminSignup = Omit<
+  typeof schema.users.$inferInsert & {
+    tenantInfo: typeof schema.tenants.$inferInsert;
+  },
+  'tenantId'
+>;
+
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private tenantsService: TenantsService,
     private jwtService: JwtService,
   ) {}
 
   async signUp(input: typeof schema.users.$inferInsert): Promise<User> {
+    input.password = await argon2.hash(input.password);
     return this.usersService.create(input);
   }
 
@@ -26,8 +37,10 @@ export class AuthService {
   ): Promise<{
     access_token: string;
   }> {
-    const user = await this.usersService.findByEmail(email);
-    if (user?.password !== pass) {
+    const user = await this.usersService.authByEmail(email);
+    console.log('user', user);
+    const match = await argon2.verify(user.password, pass);
+    if (!user || !match) {
       throw new UnauthorizedException();
     }
     const payload: JwtPayload = {
@@ -38,5 +51,14 @@ export class AuthService {
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
+  }
+
+  async signUpAdmin({ tenantInfo, ...input }: AdminSignup) {
+    const tenant = await this.tenantsService.create(tenantInfo);
+    return this.signUp({
+      ...input,
+      tenantId: tenant.id,
+      role: 'admin',
+    });
   }
 }

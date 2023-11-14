@@ -2,11 +2,12 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
-  Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Article, ArticlesService, NewArticle } from './articles.service';
@@ -19,36 +20,42 @@ export class ArticlesController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   @ApiOperation({ summary: 'Create new article' })
-  create(@Body() createArticleDto: NewArticle) {
-    return this.articlesService.create(createArticleDto);
+  async create(@Body() createArticleDto: NewArticle) {
+    const article = await this.articlesService.create(createArticleDto);
+    return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all article' })
-  find() {
-    return this.articlesService.find();
+  async find() {
+    const articles = await this.articlesService.find();
+    return articles;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find article by id' })
-  findById(@Req() id: Article['id']) {
-    return this.articlesService.findById(id);
+  @Get(':id')
+  async findById(@Param() id: Article['id']) {
+    const article = await this.articlesService.findById(id);
+    return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update article by id' })
-  @Put()
-  update(
-    @Req() id: Article['id'],
+  @Put(':id')
+  async update(
+    @Param() id: Article['id'],
     @Body() updateArticleDto: Partial<NewArticle>,
   ) {
-    return this.articlesService.update(id, updateArticleDto);
+    const article = await this.articlesService.update(id, updateArticleDto);
+    return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete an article' })
-  @Delete()
-  delete(@Req() id: Article['id']) {
-    return this.articlesService.delete(id);
+  @Delete(':id')
+  async delete(@Param() id: Article['id']) {
+    await this.articlesService.delete(id);
+    return { deleted: true };
   }
 }
