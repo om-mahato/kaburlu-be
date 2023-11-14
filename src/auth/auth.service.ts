@@ -1,9 +1,9 @@
+import * as schema from '@/drizzle/schema';
+import { TenantsService } from '@/tenants/tenants.service';
+import { User, UsersService } from '@/users/users.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import * as schema from 'src/drizzle/schema';
-import { TenantsService } from 'src/tenants/tenants.service';
-import { User, UsersService } from 'src/users/users.service';
 
 export type JwtPayload = {
   sub: string;
@@ -38,7 +38,6 @@ export class AuthService {
     access_token: string;
   }> {
     const user = await this.usersService.authByEmail(email);
-    console.log('user', user);
     const match = await argon2.verify(user.password, pass);
     if (!user || !match) {
       throw new UnauthorizedException();
@@ -54,6 +53,7 @@ export class AuthService {
   }
 
   async signUpAdmin({ tenantInfo, ...input }: AdminSignup) {
+    console.log('tenant', tenantInfo, input);
     const tenant = await this.tenantsService.create(tenantInfo);
     return this.signUp({
       ...input,

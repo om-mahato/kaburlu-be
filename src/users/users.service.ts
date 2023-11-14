@@ -1,7 +1,6 @@
+import { DB, DbType } from '@/drizzle/drizzle.provider';
+import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DRIZZLE_ASYNC_PROVIDER } from 'src/drizzle/drizzle.provider';
-import * as schema from 'src/drizzle/schema';
 import { z } from 'zod';
 
 export type User = z.infer<typeof schema.selectUserSchema>;
@@ -9,8 +8,8 @@ export type User = z.infer<typeof schema.selectUserSchema>;
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(DRIZZLE_ASYNC_PROVIDER)
-    private db: PostgresJsDatabase<typeof schema>,
+    @Inject(DB)
+    private readonly db: DbType,
   ) {}
 
   async create(

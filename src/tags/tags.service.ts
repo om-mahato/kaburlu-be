@@ -1,8 +1,7 @@
+import { DB, DbType } from '@/drizzle/drizzle.provider';
+import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DRIZZLE_ASYNC_PROVIDER } from 'src/drizzle/drizzle.provider';
-import * as schema from 'src/drizzle/schema';
 
 export type Tag = typeof schema.tags.$inferSelect;
 export type NewTag = typeof schema.tags.$inferInsert;
@@ -10,8 +9,8 @@ export type NewTag = typeof schema.tags.$inferInsert;
 @Injectable()
 export class TagsService {
   constructor(
-    @Inject(DRIZZLE_ASYNC_PROVIDER)
-    private db: PostgresJsDatabase<typeof schema>,
+    @Inject(DB)
+    private readonly db: DbType,
   ) {}
 
   create(input: NewTag): Promise<Tag | undefined> {
