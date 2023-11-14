@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: kaburlu-postgres
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - backend_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: kaburlu-pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    networks:
+      - backend_network
+    ports:
+      - '5050:80'
+    depends_on:
+      - db
+
+  app:
+    container_name: kaburlu-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deploy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - backend_network
+    depends_on:
+      - db
+    restart: unless-stopped
+      
+
+volumes:
+  postgres_data: {}
+
+networks:
+  backend_network:
+    driver: bridge
