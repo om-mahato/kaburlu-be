@@ -5,7 +5,7 @@ export default defineConfig({
   driver: 'pg',
   out: './src/drizzle/migrations',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.PROD_DATABASE_URL,
   },
   verbose: true,
   strict: true,

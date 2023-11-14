@@ -1,8 +1,7 @@
+import { DB, DbType } from '@/drizzle/drizzle.provider';
+import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DRIZZLE_ASYNC_PROVIDER } from 'src/drizzle/drizzle.provider';
-import * as schema from 'src/drizzle/schema';
 
 export type Category = typeof schema.categories.$inferSelect;
 export type NewCategory = typeof schema.categories.$inferInsert;
@@ -10,8 +9,8 @@ export type NewCategory = typeof schema.categories.$inferInsert;
 @Injectable()
 export class CategoriesService {
   constructor(
-    @Inject(DRIZZLE_ASYNC_PROVIDER)
-    private db: PostgresJsDatabase<typeof schema>,
+    @Inject(DB)
+    private readonly db: DbType,
   ) {}
 
   create(input: NewCategory): Promise<Category | undefined> {

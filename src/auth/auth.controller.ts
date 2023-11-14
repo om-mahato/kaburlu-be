@@ -1,3 +1,4 @@
+import { UsersService } from '@/users/users.service';
 import {
   Body,
   Controller,
@@ -9,11 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UsersService } from 'src/users/users.service';
-import { CreateAdminDto } from './admin.dto';
 import { CreateUserDto, UserLoginDto } from './auth.dto';
 import { AuthGuard } from './auth.gaurd';
 import { AuthService, JwtPayload } from './auth.service';
+import { CreateAdminDto } from './staff.dto';
 
 @ApiTags('auth')
 @Controller('auth')

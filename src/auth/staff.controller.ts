@@ -1,3 +1,4 @@
+import { FindOneParams } from '@/common/common.dto';
 import {
   Body,
   Controller,
@@ -6,31 +7,41 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthService } from './auth.service';
 import {
   CreateBeaureauInchargeReporterDto,
+  CreateEditorDto,
   CreateMandalReporterDto,
   CreateRcReporterDto,
   CreateStaffReporterDto,
-} from './admin.dto';
-import { AuthService } from './auth.service';
+} from './staff.dto';
 
-@ApiTags('admin')
-@Controller('admin')
-export class AdminController {
+@ApiTags('staff')
+@Controller('staff')
+export class StaffController {
   constructor(private authService: AuthService) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('register/:id/editor')
   @ApiOperation({ summary: 'Register editor' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the tenant',
+  })
   @ApiBearerAuth()
   editorReporter(
-    @Param() id: string,
-    @Body() signUpDto: { email: string; password: string },
+    @Param() params: FindOneParams,
+    @Body() signUpDto: CreateEditorDto,
   ) {
     return this.authService.signUp({
       ...signUpDto,
-      tenantId: id,
+      tenantId: params.id,
       role: 'editor',
     });
   }
@@ -41,14 +52,18 @@ export class AdminController {
     summary:
       'Register reporter who is beaureau incharge. In charge of multiple district.',
   })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the tenant',
+  })
   @ApiBearerAuth()
   beaureauInChargeSignup(
-    @Param() id: string,
+    @Param() params: FindOneParams,
     @Body() { info, ...rest }: CreateBeaureauInchargeReporterDto,
   ) {
     return this.authService.signUp({
       ...rest,
-      tenantId: id,
+      tenantId: params.id,
       role: 'editor',
       info: {
         ...info,
@@ -60,14 +75,18 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   @Post('register/:id/reporter/staff-reporter')
   @ApiOperation({ summary: 'Register staff reporter' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the tenant',
+  })
   @ApiBearerAuth()
   staffReporterSignup(
-    @Param() id: string,
+    @Param() params: FindOneParams,
     @Body() { info, ...rest }: CreateStaffReporterDto,
   ) {
     return this.authService.signUp({
       ...rest,
-      tenantId: id,
+      tenantId: params.id,
       role: 'reporter',
       info: {
         ...info,
@@ -79,14 +98,18 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   @Post('register/:id/reporter/rc-reporter')
   @ApiOperation({ summary: 'Register rc reporter' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the tenant',
+  })
   @ApiBearerAuth()
   rcReporterSignup(
-    @Param() id: string,
+    @Param() params: FindOneParams,
     @Body() { info, ...rest }: CreateRcReporterDto,
   ) {
     return this.authService.signUp({
       ...rest,
-      tenantId: id,
+      tenantId: params.id,
       role: 'reporter',
       info: {
         ...info,
@@ -98,14 +121,18 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   @Post('register/:id/reporter/mandal-reporter')
   @ApiOperation({ summary: 'Register mandal reporter' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the tenant',
+  })
   @ApiBearerAuth()
   mandalReporterSignup(
-    @Param() id: string,
+    @Param() params: FindOneParams,
     @Body() { info, ...rest }: CreateMandalReporterDto,
   ) {
     return this.authService.signUp({
       ...rest,
-      tenantId: id,
+      tenantId: params.id,
       role: 'reporter',
       info: {
         ...info,
