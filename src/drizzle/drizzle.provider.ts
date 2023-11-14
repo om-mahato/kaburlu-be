@@ -11,6 +11,7 @@ export const drizzleProvider = [
       const queryClient = postgres(process.env.DATABASE_URL!);
       const db = drizzle(queryClient, {
         schema,
+        logger: true,
       });
       return db;
     },

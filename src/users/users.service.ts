@@ -16,7 +16,8 @@ export class UsersService {
   async create(
     input: typeof schema.users.$inferInsert,
   ): Promise<User | undefined> {
-    return this.db.insert(schema.users).values(input).returning()[0];
+    const users = await this.db.insert(schema.users).values(input).returning();
+    return users[0];
   }
 
   async findByEmail(email: User['email']): Promise<User | undefined> {

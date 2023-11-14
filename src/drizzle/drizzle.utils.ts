@@ -16,19 +16,10 @@ export const defaultColumns = {
 };
 
 export const defaultTenantColumns = {
-  id: varchar('id')
-    .notNull()
-    .$defaultFn(() => createId()),
+  ...defaultColumns,
   tenantId: varchar('tenant_id')
     .references(() => tenants.id, {
       onDelete: 'cascade',
     })
     .notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 };
