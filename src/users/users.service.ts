@@ -1,9 +1,8 @@
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
-import { z } from 'zod';
 
-export type User = z.infer<typeof schema.selectUserSchema>;
+export type User = typeof schema.users.$inferSelect;
 
 @Injectable()
 export class UsersService {

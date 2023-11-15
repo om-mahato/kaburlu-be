@@ -1,4 +1,4 @@
-import { Pic } from '@/drizzle/schema';
+import { Pic } from '@/drizzle/schema-helpers';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
