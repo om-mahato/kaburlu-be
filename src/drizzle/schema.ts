@@ -8,41 +8,8 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { z } from 'zod';
 import { defaultColumns, defaultTenantColumns } from './drizzle.utils';
-
-type Require<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
-export type Address = {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  pincode: string;
-};
-
-export type Location = {
-  lat: number;
-  lng: number;
-} & Partial<Address>;
-
-export type Pic = {
-  url: string;
-};
-
-export type Vid = {
-  url: string;
-};
-
-export type SeoInfo = {
-  title: string;
-  description: string;
-  keywords: string[];
-};
-
-const domainSchema = z.string().url();
-type Domain = z.infer<typeof domainSchema>;
+import { Address, Domain, Pic, Require, SeoInfo, Vid } from './schema-helpers';
 
 export const tenants = pgTable(
   'tenants',
@@ -68,9 +35,6 @@ export const tenants = pgTable(
 export const tenantsRelations = relations(tenants, ({ many }) => ({
   users: many(users),
 }));
-
-export const insertTenantSchema = createInsertSchema(tenants);
-export const selectTenantSchema = createSelectSchema(tenants);
 
 type ExtraUserInfo = {
   fatherName: string;
@@ -144,8 +108,6 @@ export const usersRelations = relations(users, ({ one }) => ({
   }),
 }));
 
-export const insertUserSchema = createInsertSchema(users);
-export const selectUserSchema = createSelectSchema(users);
 
 export const categories = pgTable(
   'categories',
