@@ -2,9 +2,8 @@ import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { User } from '@/users/users.service';
 import { Inject, Injectable } from '@nestjs/common';
-import { z } from 'zod';
 
-export type Tenant = z.infer<typeof schema.selectTenantSchema>;
+export type Tenant = typeof schema.tenants.$inferSelect;
 export type TenantInput = typeof schema.tenants.$inferInsert;
 
 @Injectable()
