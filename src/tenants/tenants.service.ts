@@ -1,6 +1,5 @@
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
-import { User } from '@/users/users.service';
 import { Inject, Injectable } from '@nestjs/common';
 
 export type Tenant = typeof schema.tenants.$inferSelect;
@@ -27,7 +26,7 @@ export class TenantsService {
     return tenants[0];
   }
 
-  async getUsers(tenantId: Tenant['id']): Promise<User[] | undefined> {
+  async getUsers(tenantId: Tenant['id']) {
     return this.db.query.tenants.findMany({
       where: (tenants, { eq }) => eq(tenants.id, tenantId),
       with: {
