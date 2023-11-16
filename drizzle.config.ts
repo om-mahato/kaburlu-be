@@ -5,8 +5,7 @@ export default defineConfig({
   driver: 'pg',
   out: './migrations',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL,
-    ssl: true
+    connectionString: `${process.env.DATABASE_URL}?sslmode=no-verify`,
   },
   verbose: true,
   strict: true,
