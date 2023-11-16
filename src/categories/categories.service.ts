@@ -1,3 +1,4 @@
+import { UserEntity } from '@/auth/auth.service';
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
@@ -17,43 +18,64 @@ export class CategoriesService {
     return this.db.insert(schema.categories).values(input).returning()[0];
   }
 
-  find(tenantId: string) {
+  findPublic() {
+    return this.db.query.categories.findMany();
+  }
+
+  findByIdPublic(id: Category['id']): Promise<Category | undefined> {
+    return this.db.query.categories.findFirst({
+      where: (categories, { eq, and }) => eq(categories.id, id),
+    });
+  }
+
+  find({ tenantId, role }: UserEntity) {
     return this.db.query.categories.findMany({
-      where: (categories, { eq }) => eq(categories.tenantId, tenantId),
+      where: (categories, { eq }) =>
+        role === 'super_admin' ? undefined : eq(categories.tenantId, tenantId),
     });
   }
 
   findById(
     id: Category['id'],
-    tenantId: string,
+    { tenantId, role }: UserEntity,
   ): Promise<Category | undefined> {
     return this.db.query.categories.findFirst({
       where: (categories, { eq, and }) =>
-        and(eq(categories.id, id), eq(categories.tenantId, tenantId)),
+        role === 'super_admin'
+          ? undefined
+          : and(eq(categories.id, id), eq(categories.tenantId, tenantId)),
     });
   }
 
-  update(id: Category['id'], tenantId: string, input: Partial<NewCategory>) {
+  update(
+    id: Category['id'],
+    { tenantId, role }: UserEntity,
+    input: Partial<NewCategory>,
+  ) {
     return this.db
       .update(schema.categories)
       .set(input)
       .where(
-        and(
-          eq(schema.categories.id, id),
-          eq(schema.categories.tenantId, tenantId),
-        ),
+        role === 'super_admin'
+          ? undefined
+          : and(
+              eq(schema.categories.id, id),
+              eq(schema.categories.tenantId, tenantId),
+            ),
       )
       .returning()[0];
   }
 
-  delete(id: Category['id'], tenantId: string) {
+  delete(id: Category['id'], { tenantId, role }: UserEntity) {
     return this.db
       .delete(schema.categories)
       .where(
-        and(
-          eq(schema.categories.id, id),
-          eq(schema.categories.tenantId, tenantId),
-        ),
+        role === 'super_admin'
+          ? undefined
+          : and(
+              eq(schema.categories.id, id),
+              eq(schema.categories.tenantId, tenantId),
+            ),
       );
   }
 }

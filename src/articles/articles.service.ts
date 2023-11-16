@@ -1,3 +1,4 @@
+import { UserEntity } from '@/auth/auth.service';
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
@@ -27,34 +28,54 @@ export class ArticlesService {
     });
   }
 
-  find(tenantId: string) {
+  find({ tenantId, role }: UserEntity) {
     return this.db.query.articles.findMany({
-      where: (articles, { eq }) => eq(articles.tenantId, tenantId),
+      where: (articles, { eq }) =>
+        role === 'super_admin' ? undefined : eq(articles.tenantId, tenantId),
     });
   }
 
-  findById(id: Article['id'], tenantId: string): Promise<Article | undefined> {
+  findById(
+    id: Article['id'],
+    { tenantId, role }: UserEntity,
+  ): Promise<Article | undefined> {
     return this.db.query.articles.findFirst({
       where: (articles, { eq, and }) =>
-        and(eq(articles.id, id), eq(articles.tenantId, tenantId)),
+        role === 'super_admin'
+          ? undefined
+          : and(eq(articles.id, id), eq(articles.tenantId, tenantId)),
     });
   }
 
-  update(id: Article['id'], tenantId: string, input: Partial<NewArticle>) {
+  update(
+    id: Article['id'],
+    { tenantId, role }: UserEntity,
+    input: Partial<NewArticle>,
+  ) {
     return this.db
       .update(schema.articles)
       .set(input)
       .where(
-        and(eq(schema.articles.id, id), eq(schema.articles.tenantId, tenantId)),
+        role === 'super_admin'
+          ? undefined
+          : and(
+              eq(schema.articles.id, id),
+              eq(schema.articles.tenantId, tenantId),
+            ),
       )
       .returning()[0];
   }
 
-  delete(id: Article['id'], tenantId: string) {
+  delete(id: Article['id'], { tenantId, role }: UserEntity) {
     return this.db
       .delete(schema.articles)
       .where(
-        and(eq(schema.articles.id, id), eq(schema.articles.tenantId, tenantId)),
+        role === 'super_admin'
+          ? undefined
+          : and(
+              eq(schema.articles.id, id),
+              eq(schema.articles.tenantId, tenantId),
+            ),
       );
   }
 }

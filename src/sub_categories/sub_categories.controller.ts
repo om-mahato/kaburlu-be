@@ -4,17 +4,18 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
-  Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  NewSubCategories,
-  SubCategories,
+  NewSubCategory,
   SubCategoriesService,
+  SubCategory,
 } from './sub_categories.service';
 
 @ApiTags('sub-categories')
@@ -25,47 +26,66 @@ export class SubCategoriesController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   @ApiOperation({ summary: 'Create new article' })
-  create(
-    @Body() createCategoriesDto: NewSubCategories,
-    @User() user: UserEntity,
-  ) {
-    return this.subCategoriesService.create({
-      ...createCategoriesDto,
+  async create(@Body() createTagDto: NewSubCategory, @User() user: UserEntity) {
+    const article = await this.subCategoriesService.create({
+      ...createTagDto,
       tenantId: user.tenantId,
     });
+    return article;
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find all article' })
-  find(@User() user: UserEntity) {
-    return this.subCategoriesService.find(user.tenantId);
+  @ApiOperation({ summary: 'Find all public article' })
+  @Get('public')
+  async findPublic() {
+    const categories = await this.subCategoriesService.findPublic();
+    return categories;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find article by id' })
-  findById(@Req() id: SubCategories['id'], @User() user: UserEntity) {
-    return this.subCategoriesService.findById(id, user.tenantId);
+  @Get(':id/public')
+  async findByIdPublic(@Param() id: SubCategory['id']) {
+    const article = await this.subCategoriesService.findByIdPublic(id);
+    return article;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find all article' })
+  async find(@User() user: UserEntity) {
+    const categories = await this.subCategoriesService.find(user);
+    return categories;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find article by id' })
+  @Get(':id')
+  async findById(@Param() id: SubCategory['id'], @User() user: UserEntity) {
+    const article = await this.subCategoriesService.findById(id, user);
+    return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update article by id' })
-  @Put()
-  update(
-    @Req() id: SubCategories['id'],
-    @Body() updateCategoriesDto: Partial<NewSubCategories>,
+  @Put(':id')
+  async update(
+    @Param() id: SubCategory['id'],
+    @Body() updateTagDto: Partial<NewSubCategory>,
     @User() user: UserEntity,
   ) {
-    return this.subCategoriesService.update(
+    const article = await this.subCategoriesService.update(
       id,
-      user.tenantId,
-      updateCategoriesDto,
+      user,
+      updateTagDto,
     );
+    return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete an article' })
-  @Delete()
-  delete(@Req() id: SubCategories['id'], @User() user: UserEntity) {
-    return this.subCategoriesService.delete(id, user.tenantId);
+  @Delete(':id')
+  async delete(@Param() id: SubCategory['id'], @User() user: UserEntity) {
+    await this.subCategoriesService.delete(id, user);
+    return { deleted: true };
   }
 }
