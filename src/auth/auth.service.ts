@@ -4,17 +4,12 @@ import { User, UsersService } from '@/users/users.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import type { Request as ExpressRequest } from 'express';
 
-export type JwtPayload = {
+export type UserEntity = {
   sub: string;
   email: string;
   tenantId: string;
 };
-
-export interface RequestWithUser extends ExpressRequest {
-  user?: JwtPayload;
-}
 
 type AdminSignup = Omit<
   typeof schema.users.$inferInsert & {
@@ -47,7 +42,7 @@ export class AuthService {
     if (!user || !match) {
       throw new UnauthorizedException();
     }
-    const payload: JwtPayload = {
+    const payload: UserEntity = {
       sub: user.id,
       email: user.email,
       tenantId: user.tenantId,

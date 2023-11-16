@@ -1,3 +1,4 @@
+import { User } from '@/user.decorator';
 import { UsersService } from '@/users/users.service';
 import {
   Body,
@@ -6,13 +7,12 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto, UserLoginDto } from './auth.dto';
 import { AuthGuard } from './auth.gaurd';
-import { AuthService, JwtPayload } from './auth.service';
+import { AuthService, UserEntity } from './auth.service';
 import { CreateAdminDto } from './staff.dto';
 
 @ApiTags('auth')
@@ -49,9 +49,8 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('profile')
   @ApiBearerAuth()
-  getProfile(@Request() req) {
-    const jwtUser = req.user as JwtPayload;
-    const user = this.usersService.findById(jwtUser.sub);
+  getProfile(@User() reqUser: UserEntity) {
+    const user = this.usersService.findById(reqUser.sub);
     return user;
   }
 }

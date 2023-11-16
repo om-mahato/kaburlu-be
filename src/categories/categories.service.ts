@@ -1,7 +1,7 @@
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 export type Category = typeof schema.categories.$inferSelect;
 export type NewCategory = typeof schema.categories.$inferInsert;
@@ -17,27 +17,43 @@ export class CategoriesService {
     return this.db.insert(schema.categories).values(input).returning()[0];
   }
 
-  find() {
-    return this.db.query.categories.findMany();
-  }
-
-  findById(id: Category['id']): Promise<Category | undefined> {
-    return this.db.query.categories.findFirst({
-      where: (categories, { eq }) => eq(categories.id, id),
+  find(tenantId: string) {
+    return this.db.query.categories.findMany({
+      where: (categories, { eq }) => eq(categories.tenantId, tenantId),
     });
   }
 
-  update(id: Category['id'], input: Partial<NewCategory>) {
+  findById(
+    id: Category['id'],
+    tenantId: string,
+  ): Promise<Category | undefined> {
+    return this.db.query.categories.findFirst({
+      where: (categories, { eq, and }) =>
+        and(eq(categories.id, id), eq(categories.tenantId, tenantId)),
+    });
+  }
+
+  update(id: Category['id'], tenantId: string, input: Partial<NewCategory>) {
     return this.db
       .update(schema.categories)
       .set(input)
-      .where(eq(schema.categories.id, id))
+      .where(
+        and(
+          eq(schema.categories.id, id),
+          eq(schema.categories.tenantId, tenantId),
+        ),
+      )
       .returning()[0];
   }
 
-  delete(id: Category['id']) {
+  delete(id: Category['id'], tenantId: string) {
     return this.db
       .delete(schema.categories)
-      .where(eq(schema.categories.id, id));
+      .where(
+        and(
+          eq(schema.categories.id, id),
+          eq(schema.categories.tenantId, tenantId),
+        ),
+      );
   }
 }
