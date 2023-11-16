@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -13,8 +14,10 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import {
+  CreateAdminDto,
   CreateBeaureauInchargeReporterDto,
   CreateEditorDto,
   CreateMandalReporterDto,
@@ -24,8 +27,17 @@ import {
 
 @ApiTags('staff')
 @Controller('staff')
+@UseGuards(AuthGuard)
 export class StaffController {
   constructor(private authService: AuthService) {}
+
+  @HttpCode(HttpStatus.OK)
+  @Post('register/admin')
+  @ApiOperation({ summary: 'Register newspaper admin' })
+  @ApiBearerAuth()
+  signupAdmin(@Body() signUpDto: CreateAdminDto) {
+    return this.authService.signUpAdmin(signUpDto);
+  }
 
   @HttpCode(HttpStatus.OK)
   @Post('register/:id/editor')

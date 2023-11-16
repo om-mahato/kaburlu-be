@@ -11,9 +11,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto, UserLoginDto } from './auth.dto';
-import { AuthGuard } from './auth.gaurd';
+import { AuthGuard } from './auth.guard';
 import { AuthService, UserEntity } from './auth.service';
-import { CreateAdminDto } from './staff.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -36,14 +35,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user' })
   signIn(@Body() signInDto: UserLoginDto) {
     return this.authService.signIn(signInDto.email, signInDto.password);
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @Post('register/admin')
-  @ApiOperation({ summary: 'Register newspaper admin' })
-  @ApiBearerAuth()
-  signupAdmin(@Body() signUpDto: CreateAdminDto) {
-    return this.authService.signUpAdmin(signUpDto);
   }
 
   @UseGuards(AuthGuard)

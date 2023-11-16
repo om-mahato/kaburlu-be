@@ -47,12 +47,12 @@ export class ArticlesService {
     });
   }
 
-  update(
+  async update(
     id: Article['id'],
     { tenantId, role }: UserEntity,
     input: Partial<NewArticle>,
   ) {
-    return this.db
+    const articles = await this.db
       .update(schema.articles)
       .set(input)
       .where(
@@ -63,7 +63,8 @@ export class ArticlesService {
               eq(schema.articles.tenantId, tenantId),
             ),
       )
-      .returning()[0];
+      .returning();
+    return articles[0];
   }
 
   delete(id: Article['id'], { tenantId, role }: UserEntity) {

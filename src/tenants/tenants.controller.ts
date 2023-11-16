@@ -1,3 +1,4 @@
+import { CreateTenantDto } from '@/auth/staff.dto';
 import {
   Body,
   Controller,
@@ -8,7 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Tenant, TenantInput, TenantsService } from './tenants.service';
+import { Tenant, TenantsService } from './tenants.service';
 
 @ApiBearerAuth()
 @ApiTags('tenants')
@@ -19,7 +20,7 @@ export class TenantsController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   @ApiOperation({ summary: 'Create a tenant' })
-  create(@Body() input: TenantInput) {
+  create(@Body() input: CreateTenantDto) {
     return this.tenantsService.create(input);
   }
 
