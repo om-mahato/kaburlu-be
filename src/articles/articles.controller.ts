@@ -1,3 +1,4 @@
+import { AuthGuard } from '@/auth/auth.guard';
 import { UserEntity } from '@/auth/auth.service';
 import { User } from '@/user.decorator';
 import {
@@ -10,9 +11,21 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Article, ArticlesService, NewArticle } from './articles.service';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { slugify } from 'transliteration';
+import { CreateArticleDto } from './article.dto';
+import {
+  ArticlesService,
+  type Article,
+  type NewArticle,
+} from './articles.service';
 
 @ApiTags('articles')
 @Controller('articles')
@@ -20,11 +33,17 @@ export class ArticlesController {
   constructor(private articlesService: ArticlesService) {}
 
   @HttpCode(HttpStatus.CREATED)
-  @Post()
   @ApiOperation({ summary: 'Create new article' })
-  async create(@Body() createArticleDto: NewArticle, @User() user: UserEntity) {
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Post()
+  async create(
+    @Body() createArticleDto: CreateArticleDto,
+    @User() user: UserEntity,
+  ) {
     const article = await this.articlesService.create({
       ...createArticleDto,
+      slug: slugify(createArticleDto.title),
       tenantId: user.tenantId,
     });
     return article;
@@ -48,6 +67,8 @@ export class ArticlesController {
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all article' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   async find(@User() user: UserEntity) {
     const articles = await this.articlesService.find(user);
     return articles;
@@ -55,6 +76,12 @@ export class ArticlesController {
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find article by id' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the article',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Get(':id')
   async findById(@Param() id: Article['id'], @User() user: UserEntity) {
     const article = await this.articlesService.findById(id, user);
@@ -63,6 +90,12 @@ export class ArticlesController {
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update article by id' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the article',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put(':id')
   async update(
     @Param() id: Article['id'],
@@ -79,6 +112,12 @@ export class ArticlesController {
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete an article' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the article',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async delete(@Param() id: Article['id'], @User() user: UserEntity) {
     await this.articlesService.delete(id, user);

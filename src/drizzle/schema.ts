@@ -165,7 +165,7 @@ export const articles = pgTable(
     seo: jsonb('seo').$type<SeoInfo>(),
     published: boolean('published').default(false),
     sourceId: varchar('source_id'),
-    location: jsonb('location').$type<Location>(),
+    location: jsonb('location').$type<string>(),
   },
   (articles) => ({
     primary: primaryKey({

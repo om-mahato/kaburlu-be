@@ -1,3 +1,4 @@
+import { AuthGuard } from '@/auth/auth.guard';
 import { UserEntity } from '@/auth/auth.service';
 import { User } from '@/user.decorator';
 import {
@@ -10,8 +11,15 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { CreateSubCategoryDto } from './sub_categories.dto';
 import {
   NewSubCategory,
   SubCategoriesService,
@@ -24,18 +32,23 @@ export class SubCategoriesController {
   constructor(private subCategoriesService: SubCategoriesService) {}
 
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create new sub-category' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Post()
-  @ApiOperation({ summary: 'Create new article' })
-  async create(@Body() createTagDto: NewSubCategory, @User() user: UserEntity) {
-    const article = await this.subCategoriesService.create({
+  async create(
+    @Body() createTagDto: CreateSubCategoryDto,
+    @User() user: UserEntity,
+  ) {
+    const subCategory = await this.subCategoriesService.create({
       ...createTagDto,
       tenantId: user.tenantId,
     });
-    return article;
+    return subCategory;
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find all public article' })
+  @ApiOperation({ summary: 'Find all public sub_category' })
   @Get('public')
   async findPublic() {
     const categories = await this.subCategoriesService.findPublic();
@@ -43,46 +56,57 @@ export class SubCategoriesController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find article by id' })
-  @Get(':id/public')
-  async findByIdPublic(@Param() id: SubCategory['id']) {
-    const article = await this.subCategoriesService.findByIdPublic(id);
-    return article;
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find all article' })
+  @ApiOperation({ summary: 'Find all sub_category' })
+  @UseGuards(AuthGuard)
   async find(@User() user: UserEntity) {
     const categories = await this.subCategoriesService.find(user);
     return categories;
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find article by id' })
+  @ApiOperation({ summary: 'Find sub-category by id' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the sub-category',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Get(':id')
   async findById(@Param() id: SubCategory['id'], @User() user: UserEntity) {
-    const article = await this.subCategoriesService.findById(id, user);
-    return article;
+    const subCategory = await this.subCategoriesService.findById(id, user);
+    return subCategory;
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update article by id' })
+  @ApiOperation({ summary: 'Update sub-category by id' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the sub-category',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Put(':id')
   async update(
     @Param() id: SubCategory['id'],
     @Body() updateTagDto: Partial<NewSubCategory>,
     @User() user: UserEntity,
   ) {
-    const article = await this.subCategoriesService.update(
+    const subCategory = await this.subCategoriesService.update(
       id,
       user,
       updateTagDto,
     );
-    return article;
+    return true;
   }
 
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete an article' })
+  @ApiOperation({ summary: 'Delete an sub_category' })
+  @ApiParam({
+    name: 'id',
+    description: 'id of the sub-category',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async delete(@Param() id: SubCategory['id'], @User() user: UserEntity) {
     await this.subCategoriesService.delete(id, user);
