@@ -6,6 +6,7 @@ export default defineConfig({
   out: './migrations',
   dbCredentials: {
     connectionString: process.env.DATABASE_URL,
+    ssl: true
   },
   verbose: true,
   strict: true,
