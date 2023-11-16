@@ -1,7 +1,7 @@
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 export type Article = typeof schema.articles.$inferSelect;
 export type NewArticle = typeof schema.articles.$inferInsert;
@@ -17,25 +17,44 @@ export class ArticlesService {
     return this.db.insert(schema.articles).values(input).returning()[0];
   }
 
-  find() {
+  findPublic() {
     return this.db.query.articles.findMany();
   }
 
-  findById(id: Article['id']): Promise<Article | undefined> {
+  findByIdPublic(id: Article['id']): Promise<Article | undefined> {
     return this.db.query.articles.findFirst({
-      where: (articles, { eq }) => eq(articles.id, id),
+      where: (articles, { eq, and }) => eq(articles.id, id),
     });
   }
 
-  update(id: Article['id'], input: Partial<NewArticle>) {
+  find(tenantId: string) {
+    return this.db.query.articles.findMany({
+      where: (articles, { eq }) => eq(articles.tenantId, tenantId),
+    });
+  }
+
+  findById(id: Article['id'], tenantId: string): Promise<Article | undefined> {
+    return this.db.query.articles.findFirst({
+      where: (articles, { eq, and }) =>
+        and(eq(articles.id, id), eq(articles.tenantId, tenantId)),
+    });
+  }
+
+  update(id: Article['id'], tenantId: string, input: Partial<NewArticle>) {
     return this.db
       .update(schema.articles)
       .set(input)
-      .where(eq(schema.articles.id, id))
+      .where(
+        and(eq(schema.articles.id, id), eq(schema.articles.tenantId, tenantId)),
+      )
       .returning()[0];
   }
 
-  delete(id: Article['id']) {
-    return this.db.delete(schema.articles).where(eq(schema.articles.id, id));
+  delete(id: Article['id'], tenantId: string) {
+    return this.db
+      .delete(schema.articles)
+      .where(
+        and(eq(schema.articles.id, id), eq(schema.articles.tenantId, tenantId)),
+      );
   }
 }

@@ -1,7 +1,7 @@
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 export type Tag = typeof schema.tags.$inferSelect;
 export type NewTag = typeof schema.tags.$inferInsert;
@@ -17,25 +17,30 @@ export class TagsService {
     return this.db.insert(schema.tags).values(input).returning()[0];
   }
 
-  find() {
-    return this.db.query.tags.findMany();
-  }
-
-  findById(id: Tag['id']): Promise<Tag | undefined> {
-    return this.db.query.tags.findFirst({
-      where: (tags, { eq }) => eq(tags.id, id),
+  find(tenantId: string) {
+    return this.db.query.tags.findMany({
+      where: (tags, { eq }) => eq(tags.tenantId, tenantId),
     });
   }
 
-  update(id: Tag['id'], input: Partial<NewTag>) {
+  findById(id: Tag['id'], tenantId: string): Promise<Tag | undefined> {
+    return this.db.query.tags.findFirst({
+      where: (tags, { eq, and }) =>
+        and(eq(tags.id, id), eq(tags.tenantId, tenantId)),
+    });
+  }
+
+  update(id: Tag['id'], tenantId: string, input: Partial<NewTag>) {
     return this.db
       .update(schema.tags)
       .set(input)
-      .where(eq(schema.tags.id, id))
+      .where(and(eq(schema.tags.id, id), eq(schema.tags.tenantId, tenantId)))
       .returning()[0];
   }
 
-  delete(id: Tag['id']) {
-    return this.db.delete(schema.tags).where(eq(schema.tags.id, id));
+  delete(id: Tag['id'], tenantId: string) {
+    return this.db
+      .delete(schema.tags)
+      .where(and(eq(schema.tags.id, id), eq(schema.tags.tenantId, tenantId)));
   }
 }

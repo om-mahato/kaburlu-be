@@ -1,3 +1,5 @@
+import { UserEntity } from '@/auth/auth.service';
+import { User } from '@/user.decorator';
 import {
   Body,
   Controller,
@@ -23,20 +25,26 @@ export class SubCategoriesController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   @ApiOperation({ summary: 'Create new article' })
-  create(@Body() createCategoriesDto: NewSubCategories) {
-    return this.subCategoriesService.create(createCategoriesDto);
+  create(
+    @Body() createCategoriesDto: NewSubCategories,
+    @User() user: UserEntity,
+  ) {
+    return this.subCategoriesService.create({
+      ...createCategoriesDto,
+      tenantId: user.tenantId,
+    });
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all article' })
-  find() {
-    return this.subCategoriesService.find();
+  find(@User() user: UserEntity) {
+    return this.subCategoriesService.find(user.tenantId);
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find article by id' })
-  findById(@Req() id: SubCategories['id']) {
-    return this.subCategoriesService.findById(id);
+  findById(@Req() id: SubCategories['id'], @User() user: UserEntity) {
+    return this.subCategoriesService.findById(id, user.tenantId);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -45,14 +53,19 @@ export class SubCategoriesController {
   update(
     @Req() id: SubCategories['id'],
     @Body() updateCategoriesDto: Partial<NewSubCategories>,
+    @User() user: UserEntity,
   ) {
-    return this.subCategoriesService.update(id, updateCategoriesDto);
+    return this.subCategoriesService.update(
+      id,
+      user.tenantId,
+      updateCategoriesDto,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete an article' })
   @Delete()
-  delete(@Req() id: SubCategories['id']) {
-    return this.subCategoriesService.delete(id);
+  delete(@Req() id: SubCategories['id'], @User() user: UserEntity) {
+    return this.subCategoriesService.delete(id, user.tenantId);
   }
 }

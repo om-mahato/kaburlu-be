@@ -1,3 +1,5 @@
+import { UserEntity } from '@/auth/auth.service';
+import { User } from '@/user.decorator';
 import {
   Body,
   Controller,
@@ -20,23 +22,42 @@ export class ArticlesController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   @ApiOperation({ summary: 'Create new article' })
-  async create(@Body() createArticleDto: NewArticle) {
-    const article = await this.articlesService.create(createArticleDto);
+  async create(@Body() createArticleDto: NewArticle, @User() user: UserEntity) {
+    const article = await this.articlesService.create({
+      ...createArticleDto,
+      tenantId: user.tenantId,
+    });
+    return article;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find all public article' })
+  @Get('public')
+  async findPublic() {
+    const articles = await this.articlesService.findPublic();
+    return articles;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find article by id' })
+  @Get(':id/public')
+  async findByIdPublic(@Param() id: Article['id']) {
+    const article = await this.articlesService.findByIdPublic(id);
     return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all article' })
-  async find() {
-    const articles = await this.articlesService.find();
+  async find(@User() user: UserEntity) {
+    const articles = await this.articlesService.find(user.tenantId);
     return articles;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find article by id' })
   @Get(':id')
-  async findById(@Param() id: Article['id']) {
-    const article = await this.articlesService.findById(id);
+  async findById(@Param() id: Article['id'], @User() user: UserEntity) {
+    const article = await this.articlesService.findById(id, user.tenantId);
     return article;
   }
 
@@ -46,16 +67,21 @@ export class ArticlesController {
   async update(
     @Param() id: Article['id'],
     @Body() updateArticleDto: Partial<NewArticle>,
+    @User() user: UserEntity,
   ) {
-    const article = await this.articlesService.update(id, updateArticleDto);
+    const article = await this.articlesService.update(
+      id,
+      user.tenantId,
+      updateArticleDto,
+    );
     return article;
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete an article' })
   @Delete(':id')
-  async delete(@Param() id: Article['id']) {
-    await this.articlesService.delete(id);
+  async delete(@Param() id: Article['id'], @User() user: UserEntity) {
+    await this.articlesService.delete(id, user.tenantId);
     return { deleted: true };
   }
 }

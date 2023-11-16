@@ -1,3 +1,5 @@
+import { UserEntity } from '@/auth/auth.service';
+import { User } from '@/user.decorator';
 import {
   Body,
   Controller,
@@ -19,20 +21,23 @@ export class CategoriesController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   @ApiOperation({ summary: 'Create new article' })
-  create(@Body() createCategoriesDto: NewCategory) {
-    return this.categoriesService.create(createCategoriesDto);
+  create(@Body() createCategoriesDto: NewCategory, @User() user: UserEntity) {
+    return this.categoriesService.create({
+      ...createCategoriesDto,
+      tenantId: user.tenantId,
+    });
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all article' })
-  find() {
-    return this.categoriesService.find();
+  find(@User() user: UserEntity) {
+    return this.categoriesService.find(user.tenantId);
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find article by id' })
-  findById(@Req() id: Category['id']) {
-    return this.categoriesService.findById(id);
+  findById(@Req() id: Category['id'], @User() user: UserEntity) {
+    return this.categoriesService.findById(id, user.tenantId);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -41,14 +46,19 @@ export class CategoriesController {
   update(
     @Req() id: Category['id'],
     @Body() updateCategoriesDto: Partial<NewCategory>,
+    @User() user: UserEntity,
   ) {
-    return this.categoriesService.update(id, updateCategoriesDto);
+    return this.categoriesService.update(
+      id,
+      user.tenantId,
+      updateCategoriesDto,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete an article' })
   @Delete()
-  delete(@Req() id: Category['id']) {
-    return this.categoriesService.delete(id);
+  delete(@Req() id: Category['id'], @User() user: UserEntity) {
+    return this.categoriesService.delete(id, user.tenantId);
   }
 }
