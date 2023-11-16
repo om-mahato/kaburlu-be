@@ -7,8 +7,9 @@ import * as argon2 from 'argon2';
 
 export type UserEntity = {
   sub: string;
-  email: string;
-  tenantId: string;
+  email: User['email'];
+  tenantId: User['tenantId'];
+  role: User['role'];
 };
 
 type AdminSignup = Omit<
@@ -46,6 +47,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       tenantId: user.tenantId,
+      role: user.role,
     };
     return {
       access_token: await this.jwtService.signAsync(payload),
@@ -53,7 +55,7 @@ export class AuthService {
   }
 
   async signUpAdmin({ tenantInfo, ...input }: AdminSignup) {
-    console.log('tenant', tenantInfo, input);
+    // console.log('tenant', tenantInfo, input);
     const tenant = await this.tenantsService.create(tenantInfo);
     return this.signUp({
       ...input,

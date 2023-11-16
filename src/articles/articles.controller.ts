@@ -49,7 +49,7 @@ export class ArticlesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all article' })
   async find(@User() user: UserEntity) {
-    const articles = await this.articlesService.find(user.tenantId);
+    const articles = await this.articlesService.find(user);
     return articles;
   }
 
@@ -57,7 +57,7 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Find article by id' })
   @Get(':id')
   async findById(@Param() id: Article['id'], @User() user: UserEntity) {
-    const article = await this.articlesService.findById(id, user.tenantId);
+    const article = await this.articlesService.findById(id, user);
     return article;
   }
 
@@ -71,7 +71,7 @@ export class ArticlesController {
   ) {
     const article = await this.articlesService.update(
       id,
-      user.tenantId,
+      user,
       updateArticleDto,
     );
     return article;
@@ -81,7 +81,7 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Delete an article' })
   @Delete(':id')
   async delete(@Param() id: Article['id'], @User() user: UserEntity) {
-    await this.articlesService.delete(id, user.tenantId);
+    await this.articlesService.delete(id, user);
     return { deleted: true };
   }
 }

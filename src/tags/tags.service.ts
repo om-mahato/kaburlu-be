@@ -1,3 +1,4 @@
+import { UserEntity } from '@/auth/auth.service';
 import { DB, DbType } from '@/drizzle/drizzle.provider';
 import * as schema from '@/drizzle/schema';
 import { Inject, Injectable } from '@nestjs/common';
@@ -17,30 +18,58 @@ export class TagsService {
     return this.db.insert(schema.tags).values(input).returning()[0];
   }
 
-  find(tenantId: string) {
-    return this.db.query.tags.findMany({
-      where: (tags, { eq }) => eq(tags.tenantId, tenantId),
+  findPublic() {
+    return this.db.query.tags.findMany();
+  }
+
+  findByIdPublic(id: Tag['id']): Promise<Tag | undefined> {
+    return this.db.query.tags.findFirst({
+      where: (tags, { eq, and }) => eq(tags.id, id),
     });
   }
 
-  findById(id: Tag['id'], tenantId: string): Promise<Tag | undefined> {
+  find({ tenantId, role }: UserEntity) {
+    return this.db.query.tags.findMany({
+      where: (tags, { eq }) =>
+        role === 'super_admin' ? undefined : eq(tags.tenantId, tenantId),
+    });
+  }
+
+  findById(
+    id: Tag['id'],
+    { tenantId, role }: UserEntity,
+  ): Promise<Tag | undefined> {
     return this.db.query.tags.findFirst({
       where: (tags, { eq, and }) =>
-        and(eq(tags.id, id), eq(tags.tenantId, tenantId)),
+        role === 'super_admin'
+          ? undefined
+          : and(eq(tags.id, id), eq(tags.tenantId, tenantId)),
     });
   }
 
-  update(id: Tag['id'], tenantId: string, input: Partial<NewTag>) {
+  update(
+    id: Tag['id'],
+    { tenantId, role }: UserEntity,
+    input: Partial<NewTag>,
+  ) {
     return this.db
       .update(schema.tags)
       .set(input)
-      .where(and(eq(schema.tags.id, id), eq(schema.tags.tenantId, tenantId)))
+      .where(
+        role === 'super_admin'
+          ? undefined
+          : and(eq(schema.tags.id, id), eq(schema.tags.tenantId, tenantId)),
+      )
       .returning()[0];
   }
 
-  delete(id: Tag['id'], tenantId: string) {
+  delete(id: Tag['id'], { tenantId, role }: UserEntity) {
     return this.db
       .delete(schema.tags)
-      .where(and(eq(schema.tags.id, id), eq(schema.tags.tenantId, tenantId)));
+      .where(
+        role === 'super_admin'
+          ? undefined
+          : and(eq(schema.tags.id, id), eq(schema.tags.tenantId, tenantId)),
+      );
   }
 }
