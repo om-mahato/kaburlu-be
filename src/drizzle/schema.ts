@@ -9,7 +9,15 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { defaultColumns, defaultTenantColumns } from './drizzle.utils';
-import { Address, Domain, Pic, Require, SeoInfo, Vid } from './schema-helpers';
+import {
+  Address,
+  ArticleBlock,
+  Domain,
+  Pic,
+  SeoInfo,
+  UserInfo,
+  Vid,
+} from './schema-helpers';
 
 export const tenants = pgTable(
   'tenants',
@@ -35,43 +43,6 @@ export const tenants = pgTable(
 export const tenantsRelations = relations(tenants, ({ many }) => ({
   users: many(users),
 }));
-
-type ExtraUserInfo = {
-  fatherName: string;
-};
-
-type ReporterRankInfo = {
-  beureauInCharge?: string;
-  staffReporter?: string;
-  rcInCharge?: string;
-};
-
-type InfoByRole =
-  | {
-      level: 'beaureau';
-      rank?: never;
-    }
-  | {
-      level: 'staff';
-      rank: Require<ReporterRankInfo, 'beureauInCharge'>;
-    }
-  | {
-      level: 'rc';
-      rank: Require<ReporterRankInfo, 'beureauInCharge' | 'staffReporter'>;
-    }
-  | {
-      level: 'mandal';
-      rank: Require<
-        ReporterRankInfo,
-        'beureauInCharge' | 'staffReporter' | 'rcInCharge'
-      >;
-    }
-  | {
-      level?: never;
-      rank?: never;
-    };
-
-type UserInfo = InfoByRole & ExtraUserInfo;
 
 export const users = pgTable(
   'users',
@@ -107,7 +78,6 @@ export const usersRelations = relations(users, ({ one }) => ({
     references: [tenants.id],
   }),
 }));
-
 
 export const categories = pgTable(
   'categories',
@@ -152,6 +122,7 @@ export const articles = pgTable(
     ...defaultTenantColumns,
     title: varchar('title', { length: 30 }).notNull(),
     slug: varchar('title').notNull(),
+    blocks: jsonb('blocks').$type<ArticleBlock>(),
     summary: varchar('description', { length: 60 }).notNull(),
     content: varchar('content', { length: 160 }).notNull(),
     images: jsonb('images').$type<Pic[]>(),
@@ -164,7 +135,6 @@ export const articles = pgTable(
     breakingNews: boolean('is_breaking').default(false),
     seo: jsonb('seo').$type<SeoInfo>(),
     published: boolean('published').default(false),
-    sourceId: varchar('source_id'),
     location: jsonb('location').$type<string>(),
   },
   (articles) => ({
